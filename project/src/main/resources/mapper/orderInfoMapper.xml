@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.mx.dao.OrderInfoDao">
+  	<!-- 增加一条订单 -->
+  	<!-- seq_onewId oracle序列 ，每调用一次就增加一次-->
+  	<insert id="add" parameterType="com.mx.entity.OrderInfo">
+  		insert into orderinfo 
+  		values(seq_onewId.Nextval,
+  		#{c_id},#{o_date},#{c_name_of_purchaser},#{o_price})
+  	</insert>
+  	
+  	<!-- 查询订单详情 -->
+  	<select id="getOrderInfoDetailsByWhere" resultType="com.mx.dto.OrderInfoDetails">
+  		select * from (select o.*,c.c_name,cy.c_name as c_type_name,row_number() over(order by o.id desc) as rn from orderinfo o 
+	  		inner join commodity c on o.c_id = c.id
+			inner join category cy on c.c_type = cy.id 
+			<where>
+				<!-- 根据商品销售时间查询    卖出时间-->
+				<if test="whereName == 'o_date'">
+					<if test="whereValue != null and whereValue != ''">
+						to_char(o.o_date,'yyyy-MM-dd') = #{whereValue}
+					</if>
+				</if>
+				<!-- 根据商品名称查询 支持模糊查询     销售物品-->
+				<if test="whereName == 'c_name'">
+					<if test="whereValue != null and whereValue != ''">
+						c.c_name like #{whereValue} 
+					</if>
+				</if>
+				<!-- 根据商品金额区间查询      价格区间 -->
+				<if test="whereName == 'o_price'">
+					<if test="whereValue != null and whereValue != ''">
+						<![CDATA[o.o_price >= #{price1} and o.o_price <= #{price2}]]>
+					</if>
+				</if>
+			</where>
+			)
+			<!-- 根据 oracle row_number() 分页查询 -->
+  			<![CDATA[where rn >= #{page} and rn <= #{rows}]]>
+  	</select>
+  	<!-- 查询总条数 同上 -->
+  	<select id="getOrderInfoCountDetailsByWhere" resultType="int">
+  			select count(1) from (select o.*,c.c_name,cy.c_name as c_type_name from orderinfo o 
+	  		inner join commodity c on o.c_id = c.id
+			inner join category cy on c.c_type = cy.id 
+			<where>
+				<if test="whereName == 'o_date'">
+					<if test="whereValue != null and whereValue != ''">
+						to_char(o.o_date,'yyyy-MM-dd') = #{whereValue}
+					</if>
+				</if>
+				<if test="whereName == 'c_name'">
+					<if test="whereValue != null and whereValue != ''">
+						c.c_name like #{whereValue}
+					</if>
+				</if>
+				<if test="whereName == 'o_price'">
+					<if test="whereValue != null and whereValue != ''">
+						<![CDATA[o.o_price >= #{price1} and o.o_price <= #{price2}]]>
+					</if>
+				</if>
+			</where>
+			)
+  	</select>
+  	
+  	<!-- 根据id查询订单详情 -->
+  	<select id="getOrderInfoById" resultType="com.mx.dto.OrderInfoDetails">
+	  	select o.*,c.c_name,c.c_production_time,cy.c_name as c_type_name,o.o_price,c.c_remarks from orderinfo o inner join commodity
+	  	 c on o.c_id = c.id inner join category cy 
+	  	 on c.c_type = cy.id where o.id = #{id}
+  	</select>
+  </mapper>

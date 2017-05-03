@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <!-- 查询所有商品的一条信息 -->
+  <mapper namespace="com.mx.dao.CommodityDao">
+  	<select id="getAll" resultType="com.mx.entity.Commodity">
+  		select * from COMMODITY
+  	</select>
+  <!-- 随机查询一条商品信息       sys_guid产生随机数-->	
+  <select id="getCommodityByRandom" resultType="com.mx.entity.Commodity">
+  	select * from (select * from commodity order by sys_guid())  
+      where rownum = 1
+  </select>
+  
+  </mapper>
